@@ -1,6 +1,6 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
 // I AM NOT DONE
 
@@ -37,7 +37,18 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.count += 1;
+        self.items.push(value);
+        let mut idx = self.count;
+        while idx > 1 {
+            let parent_idx = self.parent_idx(idx);
+            if (self.comparator)(&self.items[idx], &self.items[parent_idx]) {
+                self.items.swap(idx, parent_idx);
+                idx = parent_idx;
+            } else {
+                break;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +68,15 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        if right > self.count {
+            left
+        } else if (self.comparator)(&self.items[left], &self.items[right]) {
+            left
+        } else {
+            right
+        }
     }
 }
 
@@ -79,13 +97,30 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            return None;
+        }
+        let root = self.items[1].clone();
+        self.items[1] = self.items[self.count].clone();
+        self.items.pop(); // 把最后一个元素移出
+        self.count -= 1;
+
+        let mut idx = 1;
+        while self.children_present(idx) {
+            let smallest_child_idx = self.smallest_child_idx(idx);
+            if (self.comparator)(&self.items[smallest_child_idx], &self.items[idx]) {
+                self.items.swap(smallest_child_idx, idx);
+                idx = smallest_child_idx; // 正确地更新 idx 来继续向下堆化
+            } else {
+                break; // 如果满足堆性质，提前结束
+            }
+        }
+        Some(root)
     }
 }
 
